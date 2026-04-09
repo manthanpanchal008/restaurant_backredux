@@ -38,7 +38,8 @@ const register = async (req, res) => {
 
   // Security: Prevent anyone from registering as admin unless we allow it explicitly
   // Defaulting to 'customer' if role is not provided or if it's not a verified register
-  const userRole = (role && role.toLowerCase() === 'admin') ? 'admin' : 'customer';
+  const userRole = (role && role.toLowerCase() === 'admin') ? 'admin' : 'user';
+
 
   // Hash the password before storing
   const hashpassword = await bcrypt.hash(password, 10);

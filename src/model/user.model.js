@@ -10,10 +10,11 @@ const userSchema = new mongoose.Schema({
   role: {
     //role of person
     type: String,
-    enum: ["USER", "ADMIN", "SUPERADMIN"],
+    enum: ["user", "admin", "superadmin"],
     required: true,
-    default: "USER",
+    default: "user",
   },
+
   otp: String,
   otpExpiry: Date,
   isVerified: {
