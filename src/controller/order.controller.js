@@ -3,7 +3,16 @@ const Order = require("../model/order.model");
 exports.placeOrder = async (req, res) => {
   try {
     const { items, totalAmount, address, paymentMethod } = req.body;
-    const userid = req.user.id
+
+    const userid = req.user?.id;
+
+    if (!userid) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized - Please login",
+      });
+    }
+
     const order = await Order.create({
       user: userid,
       items,
@@ -17,8 +26,14 @@ exports.placeOrder = async (req, res) => {
       message: "Order placed successfully",
       data: order,
     });
+
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Order error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 

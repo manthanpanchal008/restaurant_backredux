@@ -105,7 +105,7 @@ const login = async (req, res) => {
   res.cookie("token", token, {
     httpOnly: true,        // ✅ secure (cannot access via JS)
     secure: true,         // ❗ true only in production (HTTPS)
-    sameSite: "none",       // ✅ important for cross-origin
+    sameSite: "None",       // ✅ important for cross-origin
   });
   res.status(200).json({user:userexits, messgae: "login successful" , token });
 };
