@@ -2,7 +2,7 @@ const Order = require("../model/order.model");
 
 exports.placeOrder = async (req, res) => {
   try {
-    const { items, totalAmount, address, paymentMethod } = req.body;
+    const { items, totalAmount, address, pin, phone, paymentMethod } = req.body;
 
     const userid = req.user?.id;
 
@@ -13,13 +13,39 @@ exports.placeOrder = async (req, res) => {
       });
     }
 
+    // 🛑 VALIDATION
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Your cart is empty",
+      });
+    }
+
+    if (!address || !pin || !phone) {
+      return res.status(400).json({
+        success: false,
+        message: "Shipping address, pincode, and phone are required",
+      });
+    }
+
+    if (!totalAmount || totalAmount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid order amount",
+      });
+    }
+
     const order = await Order.create({
       user: userid,
       items,
       totalAmount,
       address,
+      pin,
+      phone,
       paymentMethod,
     });
+
+
 
     res.json({
       success: true,

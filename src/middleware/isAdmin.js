@@ -1,10 +1,13 @@
-
 const isAdmin = (req, res, next) => {
-    if (req.user.role !== "admin") {
-      return res.status(403).json({ message: "Admin only" });
-    }
+  // Check if role exists and is 'admin' (case-insensitive)
+  if (req.user && String(req.user.role).toLowerCase() === "admin") {
     next();
-  };
+  } else {
+    return res.status(403).json({ 
+      success: false,
+      message: "Access denied: Admin privileges required" 
+    });
+  }
+};
 
-
-module.exports = isAdmin
+module.exports = isAdmin;

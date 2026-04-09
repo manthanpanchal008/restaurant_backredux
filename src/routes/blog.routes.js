@@ -1,13 +1,18 @@
 const express = require('express');
 const { getAllBlogs, addBlog, updateBlog, deleteBlog } = require('../controller/blog.controller');
 const upload = require('../middleware/upload');
+const authMiddleware = require("../middleware/authMiddleware");
+const isAdmin = require("../middleware/isAdmin");
 
-const router  = express.Router()
+const router  = express.Router();
 
-router.get('/',getAllBlogs) // router to get all services
-router.get('/:id',getAllBlogs) // router to get all services
-router.post('/', upload.single("img"),addBlog ) //  router to add service
-router.put("/:id", upload.single("img"), updateBlog);
-router.delete("/:id", deleteBlog);
+// Public Routes
+router.get('/', getAllBlogs);
+router.get('/:id', getAllBlogs);
 
-module.exports = router
+// Admin Only Routes
+router.post('/', authMiddleware, isAdmin, upload.single("img"), addBlog);
+router.put("/:id", authMiddleware, isAdmin, upload.single("img"), updateBlog);
+router.delete("/:id", authMiddleware, isAdmin, deleteBlog);
+
+module.exports = router;

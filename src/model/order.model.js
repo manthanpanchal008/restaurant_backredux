@@ -16,11 +16,14 @@ const orderSchema = new mongoose.Schema({
   ],
   totalAmount: Number,
   address: String,
+  pin: String,
+  phone: String,
   paymentMethod: {
     type: String,
     enum: ["COD", "ONLINE"],
     default: "COD",
   },
+
   status: {
     type: String,
     enum: ["Pending", "Confirmed", "Delivered"],

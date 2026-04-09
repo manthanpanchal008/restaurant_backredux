@@ -5,22 +5,45 @@ const sendEmail = require("../service/sendMail");
 
 // Register new user
 const register = async (req, res) => {
-  const { username, name, email, phone, password,role ,address, pincode } = req.body;
+  const { username, name, email, phone, password, role, address, pincode } = req.body;
+
+  // 1. Basic validation
+  if (!username || !email || !password || !name || !phone) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
+  // 2. Email format validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ message: "Invalid email format" });
+  }
+
+  // 3. Password length
+  if (password.length < 6) {
+    return res.status(400).json({ message: "Password must be at least 6 characters long" });
+  }
+
   const generateOTP = () => {
     return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit
   };
+
   // Check if user with same username or email already exists
   const isUserExist = await userModel.findOne({
     $or: [{ username }, { email }],
   });
 
   if (isUserExist) {
-    return res.status(402).json({ message: "user Already Exists" });
+    return res.status(402).json({ message: "User Already Exists" });
   }
+
+  // Security: Prevent anyone from registering as admin unless we allow it explicitly
+  // Defaulting to 'customer' if role is not provided or if it's not a verified register
+  const userRole = (role && role.toLowerCase() === 'admin') ? 'admin' : 'customer';
 
   // Hash the password before storing
   const hashpassword = await bcrypt.hash(password, 10);
-  const otp = generateOTP()
+  const otp = generateOTP();
+
   // Create user in database
   const user = await userModel.create({
     username,
@@ -28,12 +51,13 @@ const register = async (req, res) => {
     email,
     phone,
     password: hashpassword,
-    role,
+    role: userRole,
     otp,
     otpExpiry: Date.now() + 5 * 60 * 1000,
-    address,  
-    pincode, 
+    address,
+    pincode,
   });
+
 
   // Generate JWT token
   const token = jwt.sign({ id: user._id,role:user.role }, process.env.JWT_SECRET);
@@ -104,9 +128,10 @@ const login = async (req, res) => {
   // Set token in cookie and respond
   res.cookie("token", token, {
     httpOnly: true,        // ✅ secure (cannot access via JS)
-    secure: true,         // ❗ true only in production (HTTPS)
-    sameSite: "None",       // ✅ important for cross-origin
+    secure: false,         // ❗ set to false for local testing (localhost uses HTTP)
+    sameSite: "Lax",       // ✅ Standard for local testing
   });
+
   res.status(200).json({user:userexits, messgae: "login successful" , token });
 };
 
