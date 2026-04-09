@@ -18,10 +18,12 @@ app.use(cors({
   origin: [
     "http://localhost:3000",
     "http://localhost:5173",
-    "https://restaurant-frontend-amber-kappa.vercel.app/",     
+    "https://restaurant-frontend-amber-kappa.vercel.app",     
   ],
   credentials: true
 }));
+
+app.options("*", cors());
 // Middleware to parse JSON request bodies
 app.use(express.json());
 
