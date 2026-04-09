@@ -18,7 +18,7 @@ app.use(cors({
   origin: [
     "http://localhost:3000",
     "http://localhost:5173",
-    "https://returent-backend.onrender.com",     
+    "https://restaurant-frontend-amber-kappa.vercel.app/",     
   ],
   credentials: true
 }));
