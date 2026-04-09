@@ -27,9 +27,12 @@ const register = async (req, res) => {
     return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit
   };
 
+  // Standardize email to lowercase
+  const normalizedEmail = email.toLowerCase();
+
   // Check if user with same username or email already exists
   const isUserExist = await userModel.findOne({
-    $or: [{ username }, { email }],
+    $or: [{ username }, { email: normalizedEmail }],
   });
 
   if (isUserExist) {
@@ -37,7 +40,7 @@ const register = async (req, res) => {
   }
 
   // Security: Prevent anyone from registering as admin unless we allow it explicitly
-  // Defaulting to 'customer' if role is not provided or if it's not a verified register
+  // Defaulting to 'user' if role is not provided or if it's not a verified register
   const userRole = (role && role.toLowerCase() === 'admin') ? 'admin' : 'user';
 
 
@@ -49,7 +52,7 @@ const register = async (req, res) => {
   const user = await userModel.create({
     username,
     name,
-    email,
+    email: normalizedEmail,
     phone,
     password: hashpassword,
     role: userRole,
@@ -62,11 +65,15 @@ const register = async (req, res) => {
 
   // Generate JWT token
   const token = jwt.sign({ id: user._id,role:user.role }, process.env.JWT_SECRET);
-  await sendEmail(email,otp);
+  await sendEmail(normalizedEmail,otp);
 
   // Set token in cookie and respond
-  res.cookie("token", token);
-  res.status(200).json({ messgae: "Register succesfully", user,token });
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+  });
+  res.status(200).json({ message: "Register successfully", user, token });
 };
 
 const verifyotp = async(req,res)=> {
@@ -107,9 +114,11 @@ const verifyotp = async(req,res)=> {
 const login = async (req, res) => {
   const { username, email, password } = req.body;
 
+  const normalizedEmail = email ? email.toLowerCase() : null;
+
   // Find user by username or email
   const userexits = await userModel.findOne({
-    $or: [{ username }, { email }],
+    $or: [{ username }, { email: normalizedEmail }],
   });
 
   if (!userexits) {
@@ -128,12 +137,12 @@ const login = async (req, res) => {
 
   // Set token in cookie and respond
   res.cookie("token", token, {
-    httpOnly: true,        // ✅ secure (cannot access via JS)
-    secure: false,         // ❗ set to false for local testing (localhost uses HTTP)
-    sameSite: "Lax",       // ✅ Standard for local testing
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
   });
 
-  res.status(200).json({user:userexits, messgae: "login successful" , token });
+  res.status(200).json({ user: userexits, message: "login successful", token });
 };
 
 const users = async (req, res) => {
