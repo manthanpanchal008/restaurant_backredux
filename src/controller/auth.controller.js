@@ -64,52 +64,45 @@ const register = async (req, res) => {
 
 
   // Generate JWT token
-  const token = jwt.sign({ id: user._id,role:user.role }, process.env.JWT_SECRET);
-  await sendEmail(normalizedEmail,otp);
+  const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET);
+  await sendEmail(normalizedEmail, otp);
 
-  // Set token in cookie and respond
-  res.cookie("token", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-  });
+  // Respond with token in JSON payload
   res.status(200).json({ message: "Register successfully", user, token });
 };
 
-const verifyotp = async(req,res)=> {
-    const {email,otp} = req.body
-  
-    if (!email || !otp) {
-      return res.status(400).json({ message: "Email and OTP are required" });
-    }
-    console.log("hit")
-    console.log(email,otp)
-    const user = await userModel.findOne({email})
-   
-    if (!user) {
-      return res.status(400).json({ message: "User not found" });
-    }
-  
-    if (!user.otpExpiry || user.otpExpiry < Date.now()) {
-      return res.status(400).json({ message: "OTP expired" });
-    }
-   
-    if (user.otp.toString() !== otp.toString()) {
-      return res.status(400).json({ message: "Invalid OTP" });
-    }
-  
-    user.isVerified = true;
-    user.otp = null;
-    user.otpExpiry = null;
-  
-    await user.save();
-  
-    res.json({
-      success: true,
-      message: "Account verified successfully",
-    });
-  };
-  
+const verifyotp = async (req, res) => {
+  const { email, otp } = req.body
+
+  if (!email || !otp) {
+    return res.status(400).json({ message: "Email and OTP are required" });
+  }
+  const user = await userModel.findOne({ email })
+
+  if (!user) {
+    return res.status(400).json({ message: "User not found" });
+  }
+
+  if (!user.otpExpiry || user.otpExpiry < Date.now()) {
+    return res.status(400).json({ message: "OTP expired" });
+  }
+
+  if (user.otp.toString() !== otp.toString()) {
+    return res.status(400).json({ message: "Invalid OTP" });
+  }
+
+  user.isVerified = true;
+  user.otp = null;
+  user.otpExpiry = null;
+
+  await user.save();
+
+  res.json({
+    success: true,
+    message: "Account verified successfully",
+  });
+};
+
 // Login existing user
 const login = async (req, res) => {
   const { username, email, password } = req.body;
@@ -133,15 +126,9 @@ const login = async (req, res) => {
   }
 
   // Generate JWT token
-  const token = jwt.sign({ id: userexits._id ,role: userexits.role,  }, process.env.JWT_SECRET);
+  const token = jwt.sign({ id: userexits._id, role: userexits.role, }, process.env.JWT_SECRET);
 
-  // Set token in cookie and respond
-  res.cookie("token", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-  });
-
+  // Respond with token in JSON payload
   res.status(200).json({ user: userexits, message: "login successful", token });
 };
 
@@ -175,14 +162,14 @@ const userProfile = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { username, name, email, phone, password , address, pincode} = req.body;
+    const { username, name, email, phone, password, address, pincode } = req.body;
 
     let updateData = {
       username,
       name,
       email,
       phone,
-      address, 
+      address,
       pincode
     };
 
@@ -241,4 +228,4 @@ const deleteUser = async (req, res) => {
   }
 };
 
-module.exports = { register, login, users ,updateUser,deleteUser,verifyotp,userProfile};
+module.exports = { register, login, users, updateUser, deleteUser, verifyotp, userProfile };

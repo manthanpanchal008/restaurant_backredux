@@ -2,13 +2,10 @@ const jwt = require("jsonwebtoken");
 
 const authMiddleware = (req, res, next) => {
   try {
-    // ✅ PRIORITIZE Authorization header over cookies for cross-domain reliability
     let token = null;
 
     if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
       token = req.headers.authorization.split(" ")[1];
-    } else if (req.cookies && req.cookies.token) {
-      token = req.cookies.token;
     }
 
     if (!token) {

@@ -53,19 +53,10 @@ app.use("/api/blog", blogRoutes);
 app.use("/api/order", orderRoutes);
 app.use("/api/admin", adminRoutes);
 
-// ✅ SERVE STATIC ASSETS IN PRODUCTION
-if (process.env.NODE_ENV === "production") {
-  const clientBuildPath = path.join(__dirname, "../../client/dist");
-  app.use(express.static(clientBuildPath));
+app.get("/", (req, res) => {
+  res.send("API is running in development mode...");
+});
 
-  app.get("/{*catchall}", (req, res) => {
-    res.sendFile(path.resolve(clientBuildPath, "index.html"));
-  });
-} else {
-  app.get("/", (req, res) => {
-    res.send("API is running in development mode...");
-  });
-}
 
 // Global Error Handler
 app.use((err, req, res, next) => {
